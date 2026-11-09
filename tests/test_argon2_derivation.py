@@ -1,5 +1,5 @@
 from kdf_tool.argon2_derivation import _generate_salt, derive_argon2id
-from kdf_tool import DerivationResult, Argon2DerivationException, \
+from kdf_tool import Argon2DerivationResult, Argon2DerivationException, \
                     Argon2Config, Argon2ConfigBuilder
 from argon2.exceptions import HashingError
 from unittest.mock import patch
@@ -32,7 +32,7 @@ def test_valid_derivation():
     argon2_config = _generate_valid_argon2config()
     key = b"0"*argon2_config.hash_len
     salt = _generate_salt()
-    derivation = DerivationResult(key, salt, argon2_config)
+    derivation = Argon2DerivationResult(key, salt, argon2_config)
 
     assert derivation.key == key
     assert derivation.salt == salt
@@ -43,26 +43,26 @@ def test_valid_derivation():
 def test_invalid_key():
     argon2_config = _generate_valid_argon2config()
     with pytest.raises(TypeError):
-        DerivationResult("0"*argon2_config.hash_len, _generate_salt(), argon2_config) # type: ignore
+        Argon2DerivationResult("0"*argon2_config.hash_len, _generate_salt(), argon2_config) # type: ignore
 
 def test_invalid_salt():
     argon2_config = _generate_valid_argon2config()
     with pytest.raises(TypeError):
-        DerivationResult(b"0"*argon2_config.hash_len, "str salt", argon2_config) # type: ignore
+        Argon2DerivationResult(b"0"*argon2_config.hash_len, "str salt", argon2_config) # type: ignore
 
 def test_invalid_argon2config():
     with pytest.raises(TypeError):
-        DerivationResult(b"key", _generate_salt(), None) # type: ignore
+        Argon2DerivationResult(b"key", _generate_salt(), None) # type: ignore
 
 def test_invalid_salt_length():
     argon2_config = _generate_valid_argon2config()
     with pytest.raises(ValueError):
-        DerivationResult(b"0"*argon2_config.hash_len, b"0", argon2_config)
+        Argon2DerivationResult(b"0"*argon2_config.hash_len, b"0", argon2_config)
 
 def test_invalid_key_length():
     argon2_config = _generate_valid_argon2config()
     with pytest.raises(ValueError):
-        DerivationResult(b"123456", _generate_salt(), argon2_config)
+        Argon2DerivationResult(b"123456", _generate_salt(), argon2_config)
 
 @pytest.mark.parametrize(
     "attribute, value",
@@ -77,7 +77,7 @@ def test_invalid_key_length():
 def test_derivation_is_immutable(attribute, value):
     argon2_config = _generate_valid_argon2config()
 
-    derivation = DerivationResult(
+    derivation = Argon2DerivationResult(
         b"0" * argon2_config.hash_len,
         _generate_salt(),
         argon2_config,
@@ -88,13 +88,13 @@ def test_derivation_is_immutable(attribute, value):
 
 def test_version_match():
     argon2_config = _generate_valid_argon2config()
-    derivation = DerivationResult(b"0"*argon2_config.hash_len, _generate_salt(), argon2_config)
+    derivation = Argon2DerivationResult(b"0"*argon2_config.hash_len, _generate_salt(), argon2_config)
     assert derivation.version == derivation.parameters.version
 
 def test_version_cannot_be_provided():
     argon2_config = _generate_valid_argon2config()
     with pytest.raises(TypeError):
-        derivation = DerivationResult(
+        derivation = Argon2DerivationResult(
                     key= b"0"*argon2_config.hash_len,
                     salt= _generate_salt(),
                     parameters= argon2_config,
@@ -103,7 +103,7 @@ def test_version_cannot_be_provided():
 def test_algorithm_cannot_be_provided():
     argon2_config = _generate_valid_argon2config()
     with pytest.raises(TypeError):
-        DerivationResult(
+        Argon2DerivationResult(
             key=b"0" * argon2_config.hash_len,
             salt=_generate_salt(),
             parameters=argon2_config,
@@ -129,7 +129,7 @@ def test_argon2derivation_invalid_config():
 
 def test_argon2derivation_valid_return():
     derivation = derive_argon2id(b"secret", _generate_valid_argon2config_low())
-    assert isinstance(derivation, DerivationResult)
+    assert isinstance(derivation, Argon2DerivationResult)
 
 def test_argon2derivation_valid_derivation_length():
     argon2_config = _generate_valid_argon2config_low()

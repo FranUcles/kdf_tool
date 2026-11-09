@@ -12,7 +12,7 @@ def _generate_salt() -> bytes:
     return secrets.token_bytes(_SALT_LENGTH)
 
 @dataclass(frozen=True)
-class DerivationResult():
+class Argon2DerivationResult():
     key: bytes
     salt: bytes
     algorithm: str = field(default="argon2id", init=False)
@@ -32,7 +32,7 @@ class DerivationResult():
             raise ValueError("key length must match parameters.hash_len")
         object.__setattr__(self, "version", self.parameters.version)
 
-def derive_argon2id(secret: bytes, config: Argon2Config) -> DerivationResult:
+def derive_argon2id(secret: bytes, config: Argon2Config) -> Argon2DerivationResult:
     if not isinstance(secret, bytes):
         raise TypeError("secret must be bytes")
     if len(secret) == 0:
@@ -55,4 +55,4 @@ def derive_argon2id(secret: bytes, config: Argon2Config) -> DerivationResult:
     except HashingError as exc:
         raise Argon2DerivationException("Error during Argon2id derivation") from exc
 
-    return DerivationResult(key=key, salt=salt, parameters=config)
+    return Argon2DerivationResult(key=key, salt=salt, parameters=config)
