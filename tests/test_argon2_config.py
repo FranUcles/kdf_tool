@@ -1,7 +1,5 @@
 import pytest
 
-import pytest
-
 from kdf_tool import (
     Argon2Config,
     Argon2ConfigBuilder,
