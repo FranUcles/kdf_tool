@@ -1,6 +1,8 @@
-from kdf_tool.argon2_derivation import _generate_salt
+from kdf_tool.argon2_derivation import _generate_salt, derive_argon2id
 from kdf_tool import DerivationResult, Argon2DerivationException, \
                     Argon2Config, Argon2ConfigBuilder
+from argon2.exceptions import HashingError
+from unittest.mock import patch
 import pytest
 from dataclasses import FrozenInstanceError
 
@@ -21,6 +23,10 @@ def test_generate_salt_generates_different_values():
 
 def _generate_valid_argon2config() -> Argon2Config:
     return Argon2ConfigBuilder().set_profile("BASIC").build()
+
+def _generate_valid_argon2config_low() -> Argon2Config:
+    return Argon2ConfigBuilder().set_time_cost(1).set_memory_cost(32)\
+                                .set_parallelism(4).set_hash_len(32).build()
 
 def test_valid_derivation():
     argon2_config = _generate_valid_argon2config()
@@ -108,3 +114,51 @@ def test_argon2derivation_exception():
     message = "Test message"
     with pytest.raises(Argon2DerivationException, match=message):
         raise Argon2DerivationException(message)
+
+def test_argon2derivation_invalid_secret():
+    with pytest.raises(TypeError):
+        derive_argon2id("str secret", _generate_valid_argon2config()) # type: ignore
+
+def test_argon2derivation_invalid_secret_length():
+    with pytest.raises(ValueError):
+        derive_argon2id(b"", _generate_valid_argon2config())
+
+def test_argon2derivation_invalid_config():
+    with pytest.raises(TypeError):
+        derive_argon2id(b"secret", None) # type: ignore
+
+def test_argon2derivation_valid_return():
+    derivation = derive_argon2id(b"secret", _generate_valid_argon2config_low())
+    assert isinstance(derivation, DerivationResult)
+
+def test_argon2derivation_valid_derivation_length():
+    argon2_config = _generate_valid_argon2config_low()
+    derivation = derive_argon2id(b"secret", argon2_config)
+    assert len(derivation.key) == argon2_config.hash_len
+
+def test_argon2derivation_valid_salt_length():
+    argon2_config = _generate_valid_argon2config_low()
+    derivation = derive_argon2id(b"secret", argon2_config)
+    assert len(derivation.salt) == 16
+
+def test_argon2derivation_different_derivations():
+    argon2_config = _generate_valid_argon2config_low()
+    derivation1 = derive_argon2id(b"secret", argon2_config)
+    derivation2 = derive_argon2id(b"secret", argon2_config)
+    assert derivation1.key != derivation2.key
+    assert derivation1.salt != derivation2.salt
+
+def test_argon2derivation_preserve_configuration():
+    argon2_config = _generate_valid_argon2config_low()
+    derivation = derive_argon2id(b"secret", argon2_config)
+    assert argon2_config == derivation.parameters
+
+def test_argon2derivation_raises_argon2exception():
+    with patch(
+        "kdf_tool.argon2_derivation.hash_secret_raw",
+        side_effect=HashingError("Simulated hashing error")
+    ):
+        with pytest.raises(Argon2DerivationException) as exc_info:
+            derive_argon2id(b"secret", _generate_valid_argon2config_low())
+
+    assert isinstance(exc_info.value.__cause__, HashingError)
