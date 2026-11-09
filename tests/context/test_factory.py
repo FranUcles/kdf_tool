@@ -3,12 +3,10 @@ import pytest
 
 from unittest.mock import Mock
 
-import kdf_tool.derivation_factory as factory_module
+import kdf_tool.context.factory as factory_module
 
-from kdf_tool.derivation_factory import DerivationFactory
-from kdf_tool.derivation_context import DerivationContext
-from kdf_tool.argon2_config import Argon2Config, ARGON2_VERSION
-from kdf_tool.argon2_derivation import Argon2DerivationResult
+from kdf_tool import DerivationFactory, DerivationContext, Argon2Config, Argon2DerivationResult
+from kdf_tool.argon2.config import ARGON2_VERSION
 
 
 @pytest.fixture

@@ -1,7 +1,7 @@
 import secrets
 from dataclasses import dataclass, field
-from .argon2_config import Argon2Config
-from .exceptions import Argon2DerivationException
+from .config import Argon2Config
+from ..exceptions import Argon2DerivationException
 
 from argon2.low_level import hash_secret_raw, Type
 from argon2.exceptions import HashingError

@@ -1,11 +1,8 @@
-
-from .argon2_config import Argon2Config
-from .argon2_derivation import derive_argon2id
+from kdf_tool.argon2.config import Argon2Config
+from kdf_tool.argon2.derivation import derive_argon2id
 from .derivation_context import DerivationContext
-from .hkdf_derivation import (
-    AVAILABLE_HASH_ALGORITHMS,
-    _hkdf_extract,
-)
+from kdf_tool.hkdf import AVAILABLE_HASH_ALGORITHMS
+from ..hkdf.extract import _hkdf_extract
 
 
 class DerivationFactory:

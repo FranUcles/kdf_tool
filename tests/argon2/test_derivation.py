@@ -1,4 +1,4 @@
-from kdf_tool.argon2_derivation import _generate_salt, derive_argon2id
+from kdf_tool.argon2.derivation import _generate_salt, derive_argon2id
 from kdf_tool import Argon2DerivationResult, Argon2DerivationException, \
                     Argon2Config, Argon2ConfigBuilder
 from argon2.exceptions import HashingError
@@ -155,7 +155,7 @@ def test_argon2derivation_preserve_configuration():
 
 def test_argon2derivation_raises_argon2exception():
     with patch(
-        "kdf_tool.argon2_derivation.hash_secret_raw",
+        "kdf_tool.argon2.derivation.hash_secret_raw",
         side_effect=HashingError("Simulated hashing error")
     ):
         with pytest.raises(Argon2DerivationException) as exc_info:
@@ -175,7 +175,7 @@ def test_argon2derivation_reference_vector():
     argon2_config = Argon2ConfigBuilder().set_time_cost(3).set_memory_cost(65536)\
                     .set_parallelism(4).build()
 
-    with patch("kdf_tool.argon2_derivation._generate_salt",return_value=salt):
+    with patch("kdf_tool.argon2.derivation._generate_salt",return_value=salt):
         result = derive_argon2id(password, argon2_config)
 
     assert result.key == expected_key
