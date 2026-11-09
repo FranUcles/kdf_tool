@@ -1,6 +1,10 @@
 import secrets
 from dataclasses import dataclass, field
 from .argon2_config import Argon2Config
+from .exceptions import Argon2DerivationException
+
+from argon2.low_level import hash_secret_raw, Type
+from argon2.exceptions import HashingError
 
 _SALT_LENGTH = 16
 
@@ -27,3 +31,28 @@ class DerivationResult():
         if len(self.key) != self.parameters.hash_len:
             raise ValueError("key length must match parameters.hash_len")
         object.__setattr__(self, "version", self.parameters.version)
+
+def derive_argon2id(secret: bytes, config: Argon2Config) -> DerivationResult:
+    if not isinstance(secret, bytes):
+        raise TypeError("secret must be bytes")
+    if len(secret) == 0:
+        raise ValueError("secret cannot be empty")
+    if not isinstance(config, Argon2Config):
+        raise TypeError("config must be Argon2Config")
+
+    salt = _generate_salt()
+    try:
+        key = hash_secret_raw(
+            secret=secret,
+            salt=salt,
+            time_cost=config.time_cost,
+            memory_cost=config.memory_cost,
+            parallelism=config.parallelism,
+            hash_len=config.hash_len,
+            type=Type.ID,
+            version=config.version
+        )
+    except HashingError as exc:
+        raise Argon2DerivationException("Error during Argon2id derivation") from exc
+
+    return DerivationResult(key=key, salt=salt, parameters=config)
