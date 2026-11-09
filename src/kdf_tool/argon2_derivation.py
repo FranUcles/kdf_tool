@@ -1,7 +1,6 @@
 import secrets
 from dataclasses import dataclass, field
 from .argon2_config import Argon2Config
-from argon2.low_level import ARGON2_VERSION
 
 _SALT_LENGTH = 16
 
@@ -21,9 +20,7 @@ class DerivationResult():
             raise TypeError("key must be bytes")
         if not isinstance(self.salt, bytes):
             raise TypeError("salt must be bytes")
-        if not isinstance(self.version, int):
-            raise TypeError("version must be integer") 
-        if not isinstance(self.parameters, bytes):
+        if not isinstance(self.parameters, Argon2Config):
             raise TypeError("parameters must be Argon2Config")
         if len(self.salt) < _SALT_LENGTH:
             raise ValueError(f"salt must contain at least {_SALT_LENGTH} bytes")
