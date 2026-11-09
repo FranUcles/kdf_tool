@@ -162,3 +162,23 @@ def test_argon2derivation_raises_argon2exception():
             derive_argon2id(b"secret", _generate_valid_argon2config_low())
 
     assert isinstance(exc_info.value.__cause__, HashingError)
+
+# Test from a reference in the repository of argon2-cffi
+def test_argon2derivation_reference_vector():
+    password = b"correct horse battery staple"
+    salt = bytes.fromhex("308211aa0be041b823db6d237e9d0c3c")
+    expected_key = bytes.fromhex(
+        "61fc094958ed8d2534cf357f3f74bd9e"
+        "743f512adedb0bc93237c2223ad341b8"
+    )
+
+    argon2_config = Argon2ConfigBuilder().set_time_cost(3).set_memory_cost(65536)\
+                    .set_parallelism(4).build()
+
+    with patch("kdf_tool.argon2_derivation._generate_salt",return_value=salt):
+        result = derive_argon2id(password, argon2_config)
+
+    assert result.key == expected_key
+    assert result.salt == salt
+
+# TODO Include the official RFC9106 tests
