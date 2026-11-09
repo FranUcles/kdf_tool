@@ -1,5 +1,6 @@
 from kdf_tool.argon2_derivation import _generate_salt
-from kdf_tool import DerivationResult, Argon2Config, Argon2ConfigBuilder
+from kdf_tool import DerivationResult, Argon2DerivationException, \
+                    Argon2Config, Argon2ConfigBuilder
 import pytest
 from dataclasses import FrozenInstanceError
 
@@ -102,3 +103,8 @@ def test_algorithm_cannot_be_provided():
             parameters=argon2_config,
             algorithm="scrypt",  # type: ignore
         )
+
+def test_argon2derivation_exception():
+    message = "Test message"
+    with pytest.raises(Argon2DerivationException, match=message):
+        raise Argon2DerivationException(message)
